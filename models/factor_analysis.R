@@ -1,9 +1,9 @@
 library(psych)
 
 fit_fa_model <- function(X, nfactors, rotate) {
-  fit <- psych::fa(X, nfactors = nfactors, fm = "ml", rotate=rotate)
-  
   mu <-colMeans(X)
+  
+  fit <- psych::fa(X, nfactors = nfactors, fm = "ml", rotate=rotate)
   
   Lambda <- as.matrix(fit$loadings)
   Phi <- fit$Phi

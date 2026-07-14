@@ -21,7 +21,7 @@ run_repro_sampling <- function(X, models, estimators, max_dim,
     }
   }
   
-  results_list <- list()
+  results <- data.frame()
   
   for (model in models) {
     
@@ -32,6 +32,20 @@ run_repro_sampling <- function(X, models, estimators, max_dim,
       k_obs <- get_estimate(estimator, X, max_dim, model)$best_dim
       log_msg("Observed: ", k_obs)
       
+      if (is.na(k_obs)) {
+        log_msg("Skipping simulations due to invalid initial estimate")
+        results <- rbind(
+          results,
+          data.frame(
+            model = model,
+            estimator = estimator,
+            k_obs = k_obs,
+            k_estimate = NA,
+            stringsAsFactors = FALSE
+          )
+        )
+        next
+      }
       
       fit <- fit_model(X, k_obs, model)
       
@@ -44,17 +58,19 @@ run_repro_sampling <- function(X, models, estimators, max_dim,
         log_msg("completed iteration ", b)
       }
       
-      results_list[[length(results_list) + 1]] <- data.frame(
-        model = model,
-        estimator = estimator,
-        k_obs = k_obs,
-        k_estimate = k_estimates,
-        stringsAsFactors = FALSE
+      results <- rbind(
+        results,
+        data.frame(
+          model = model,
+          estimator = estimator,
+          k_obs = k_obs,
+          k_estimate = k_estimates,
+          stringsAsFactors = FALSE
+        )
       )
     }
   }
   
-  results <- do.call(rbind, results_list)
   row.names(results) <- NULL
   results
 }

@@ -98,7 +98,12 @@ rmsea <- function(X, max_dim, model = c("ppca", "fa_orthogonal", "fa_oblique"),
   scores <- numeric(max_dim)
   for (nfactors in 1:max_dim) {
     fit <- fit_model(X, nfactors, model)
-    scores[nfactors] <- fit$fit$RMSEA[1]
+    rmsea_est <- fit$fit$RMSEA[1]
+    if (is.null(rmsea_est)) {
+      scores[nfactors] <- 999999
+    } else {
+      scores[nfactors] <- rmsea_est
+    }
   }
   
   candidates <- which(scores <= threshold)

@@ -2,9 +2,9 @@ library(MASS)
 
 set.seed(12)
 
-get_block_simple_data <- function(sigma_sq, p, k, n) {
-  
-  Phi <- diag(k)
+get_compound_symmetric_data <- function(sigma_sq, p, k, n, rho) {
+
+  Phi <- (1 - rho) * diag(k) + rho * ones(k, k)
   Psi <- sigma_sq * diag(p)
   
   vars_per_factor <- p %/% k

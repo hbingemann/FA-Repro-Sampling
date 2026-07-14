@@ -1,0 +1,8 @@
+"","model","estimator","k_obs","k_estimate"
+"1","fa_orthogonal","bic",7,7
+"2","fa_orthogonal","kaiser_guttman",10,9
+"3","fa_orthogonal","parallel_analysis",7,7
+"4","fa_orthogonal","rmsea",6,6
+"5","fa_orthogonal","ega",NA,NA
+"6","fa_orthogonal","vss",7,7
+"7","fa_orthogonal","map",7,7
