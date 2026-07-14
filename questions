@@ -1,0 +1,18 @@
+are we testing if the data is normally distributed?
+
+what exactly is the difference between PCA and FA
+  - like what is FA accounting for that PCA doesn't
+  
+is there a desktop somewhere I can just let code run on for 24 hours
+
+are we trying some simulations without simulating from the simulation itself?
+  - like just running the simulation 100 times and seeing the distribution of
+    the observations?
+
+
+I still don't totally see how we're sure that this is true:
+We then reapply the same method to the repro samples and compare the resulting 
+selected dimensions to the dimension selected on the original dataset, providing
+a way to characterize the method’s internal consistency and to construct 
+empirical confidence sets for the latent dimension.
+

@@ -4,10 +4,6 @@ library(MASS)
 source("data/simulated/block_simple_sim.R")
 source("methods/repro_sampling.R")
 
-X <- get_data(sigma_sq=1, p=20, d=4)
-n <- nrow(X)
-B <- 10
-max_dim <- 10
 
 # models: ppca, fa_orthogonal, fa_oblique
 models <- c("fa_orthogonal", "fa_oblique")
@@ -16,19 +12,27 @@ models <- c("fa_orthogonal", "fa_oblique")
 estimators <- c("bic", "kaiser_guttman", "parallel_analysis", 
                 "rmsea", "ega", "vss", "map")
 
-results <- run_repro_sample(X, models, estimators, max_dim, B=10, verbose=T)
 
-
-for (model in models) {
-  for (estimator in estimators) {
-    ggplot(data.frame(d = d_estimates$estimator), aes(x = d)) +
-      geom_bar(fill = "steelblue", color = "black") +
-      scale_x_continuous(breaks = 1:max_dim, limits = c(0.5, max_dim + 0.5)) +
-      labs(
-        title = paste0("estimator=", estimator, "; model=", model),
-        x = "Estimated dimensionality",
-        y = "Count"
-      ) +
-      theme_minimal()
+for (sigma_sq in c(0.5, 1, 2, 5)) {
+  for (p in c(10, 20, 50, 100)) {
+    for (k in c(2, 4, 8)) {
+      for (n in c(50, 150, 500)) {
+        X <- get_data(sigma_sq=sigma_sq, p=p, k=k, n=n)
+        B <- 2
+        max_dim <- k * 2 + 2
+        
+        results <- run_repro_sampling(X, models, estimators, max_dim, B=B, verbose=T)
+        
+        print(results)
+        write.csv(results, 
+                  paste0("results/block_simple/", 
+                         "sigma_sq_", sigma_sq, 
+                         "_p_",  p, 
+                         "_k_", k,
+                         "_n_", n,
+                         ".csv")
+                  ) 
+      }
+    }
   }
 }

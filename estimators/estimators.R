@@ -22,8 +22,8 @@ source("models/models.R")
 
 get_estimate <- function(method, X, max_dim, model) {
   switch(method,
-    bic = bic(X, max_dim, model),
     aic = aic(X, max_dim, model),
+    bic = bic(X, max_dim, model),
     rmsea = rmsea(X, max_dim, model),
     parallel_analysis = parallel_analysis(X, max_dim, model),
     hull_method = hull_method(X, max_dim, model),
@@ -43,12 +43,17 @@ bic <- function(X, max_dim, model = c("ppca", "fa_orthogonal", "fa_oblique")) {
   scores <- numeric(max_dim)
   
   for (nfactors in 1:max_dim) {
-    fit <- .fit_model(X, nfactors, model)
-    if (model == "ppca") {
-      s <- .ppca_fit_stats(fit, X, nfactors)
-      scores[nfactors] <- -2 * s$loglik + s$k * log(s$n)
+    fit <- fit_model(X, nfactors, model)
+    bic_est <- fit$fit$BIC
+    if (is.null(bic_est)) {
+      scores[nfactors] <- 999999
     } else {
-      scores[nfactors] <- fit$BIC
+      if (model == "ppca") {
+        s <- .ppca_fit_stats(fit, X, nfactors)
+        scores[nfactors] <- -2 * s$loglik + s$k * log(s$n)
+      } else {
+        scores[nfactors] <- bic_est
+      }
     }
   }
   
@@ -63,16 +68,16 @@ aic <- function(X, max_dim, model = c("ppca", "fa_orthogonal", "fa_oblique")) {
   scores <- numeric(max_dim)
   
   for (nfactors in 1:max_dim) {
-    fit <- .fit_model(X, nfactors, model)
+    fit <- fit_model(X, nfactors, model)
+    aic_est <- fit$fit$AIC
     if (model == "ppca") {
       s <- .ppca_fit_stats(fit, X, nfactors)
       scores[nfactors] <- -2 * s$loglik + 2 * s$k
     } else {
-      print(fit$AIC)
-      if (is.null(fit$AIC)) {
+      if (is.null(aic_est)) {
         scores[nfactors] <- 9999999999
       } else {
-        scores[nfactors] <- fit$AIC
+        scores[nfactors] <- aic_est
       }
     }
   }
@@ -92,8 +97,8 @@ rmsea <- function(X, max_dim, model = c("ppca", "fa_orthogonal", "fa_oblique"),
   
   scores <- numeric(max_dim)
   for (nfactors in 1:max_dim) {
-    fit <- .fit_model(X, nfactors, model)
-    scores[nfactors] <- fit$RMSEA[1]
+    fit <- fit_model(X, nfactors, model)
+    scores[nfactors] <- fit$fit$RMSEA[1]
   }
   
   candidates <- which(scores <= threshold)

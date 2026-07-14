@@ -9,10 +9,15 @@ fit_fa_model <- function(X, nfactors, rotate) {
   Phi <- fit$Phi
   Psi <- diag(fit$uniqueness)
   
+  Sigma <- if (is.null(Phi)) {
+    Lambda %*% t(Lambda) + Psi
+  } else {
+    Lambda %*% Phi %*% t(Lambda) + Psi
+  }
+  
   list(
     mu=mu,
-    Lambda=Lambda,
-    Phi=Phi,
-    Psi=Psi
+    Sigma=Sigma,
+    fit=fit
   )
 }
