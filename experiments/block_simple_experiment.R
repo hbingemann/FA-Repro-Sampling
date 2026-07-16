@@ -1,12 +1,13 @@
 library(psych)
 library(ggplot2)
 library(MASS)
+library(tictoc)
 source("data/simulated/block_simple_sim.R")
 source("methods/repro_sampling.R")
 
 
 # models: ppca, fa_orthogonal, fa_oblique
-models <- c("fa_orthogonal", "fa_oblique")
+models <- c("fa_oblique")
 
 # estimators: aic, bic, kaiser_guttman, parallel_analysis, rmsea, fspe, ega, hull, vss, map
 estimators <- c("bic", "kaiser_guttman", "parallel_analysis", 
@@ -14,12 +15,14 @@ estimators <- c("bic", "kaiser_guttman", "parallel_analysis",
 
 results_list <- list()
 
+tic("Full experiment timer")
 for (sigma_sq in c(0.5, 1, 5)) {
-  for (p in c(20, 40)) {
-    for (k in c(3, 7)) {
+  for (p in c(20)) {
+    for (k in c(5)) {
+      print(paste0("sigma_sq=", sigma_sq, "; p=", p, "; k=", k))
       n <- 100
       X <- get_data(sigma_sq=sigma_sq, p=p, k=k, n=n)
-      B <- 500
+      B <- 1
       max_dim <- 10
 
       results <- run_repro_sampling(X, models, estimators, max_dim, B=B, verbose=T)
@@ -27,6 +30,7 @@ for (sigma_sq in c(0.5, 1, 5)) {
     }
   }
 }
+toc()
 
 results <- do.call(rbind, results_list)
 row.names(results) <- NULL

@@ -3,6 +3,9 @@ library(MASS)
 source("models/models.R")
 source("estimators/estimators.R")
 
+
+# CREATE GROUPS OF ESTIMATORS THAT RUN TOGETHER
+
 # Returns a long-format data frame with one row per (model, estimator, simulation)
 # combination. Columns:
 #   - model       : the data-generating model
@@ -28,6 +31,7 @@ run_repro_sampling <- function(X, models, estimators, max_dim,
     log_msg("Running estimators for model=", model)
     for (estimator in estimators) {
       
+      tic(paste0(estimator, " timer"))
       log_msg("Current estimator: ", estimator)
       k_obs <- get_estimate(estimator, X, max_dim, model)$best_dim
       log_msg("Observed: ", k_obs)
@@ -42,6 +46,7 @@ run_repro_sampling <- function(X, models, estimators, max_dim,
             k_estimate = NA,
             stringsAsFactors = FALSE
           )
+        toc()
         next
       }
       
@@ -56,6 +61,7 @@ run_repro_sampling <- function(X, models, estimators, max_dim,
         log_msg("completed iteration ", b)
       }
       
+      toc()
       
       results_list[[length(results_list) + 1]] <- 
         data.frame(

@@ -4,7 +4,6 @@ source("models/ppca.R")
 fit_model <- function(X, nfactors, model = c("ppca", "fa_orthogonal", "fa_oblique")) {
   model <- match.arg(model)
   
-  
   if (nfactors == 0) {
     mu <-colMeans(X)
     sigma2_hat_unbiased <- mean(apply(X, 2, var))
