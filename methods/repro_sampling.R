@@ -20,7 +20,7 @@ run_repro_sampling <- function(X, models, estimators, max_dim,
   
   log_msg <- function(...) {
     if (verbose) {
-      print(paste0(...))
+      cat(paste0(..., '\n'))
     }
   }
   
