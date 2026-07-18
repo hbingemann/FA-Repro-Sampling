@@ -2,9 +2,7 @@ library(MASS)
 library(tictoc)
 source("models/models.R")
 
-get_confidence_set <- function(X, max_k, B=100, alpha=0.05, verbose=F, seed=12) {
-  
-  set.seed(seed)
+get_confidence_set <- function(X, max_k, B=100, alpha=0.05, verbose=F) {
   
   log_msg <- function(...) {
     if (verbose) {
@@ -22,7 +20,7 @@ get_confidence_set <- function(X, max_k, B=100, alpha=0.05, verbose=F, seed=12) 
     
     fit <- fit_model(X, k, "fa_oblique")
     init_bic_score <- fit$BIC
-    log_msg("Initial BIC score: ", init_bic_score)
+    log_msg("Initial BIC score: ", round(init_bic_score, digits=2))
     
     k_scores <- numeric(B)
     for (b in 1:B) {
@@ -41,11 +39,11 @@ get_confidence_set <- function(X, max_k, B=100, alpha=0.05, verbose=F, seed=12) 
     Q_high <- k_scores[B - conf_index + 1]
     
     log_msg("\nK_scores INFO")
-    log_msg("mean:", mean(k_scores))
-    log_msg("SD:", sd(k_scores))
-    log_msg("Q_low:", Q_low)
-    log_msg("Q_high:", Q_high)
-    log_msg("Initial score:", init_bic_score, '\n')
+    log_msg("mean:", round(mean(k_scores), digits=2))
+    log_msg("SD:", round(sd(k_scores), digits=2))
+    log_msg("Q_low:", round(Q_low, digits=2))
+    log_msg("Q_high:", round(Q_high, digits=2))
+    log_msg("Initial score:", round(init_bic_score, digits=2), '\n')
     
     if (Q_low <= init_bic_score && init_bic_score <= Q_high) {
       log_msg("*** Adding k =", k, " to confidence set ***\n")

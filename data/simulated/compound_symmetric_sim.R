@@ -1,7 +1,5 @@
 library(MASS)
 
-set.seed(12)
-
 get_compound_symmetric_data <- function(sigma_sq, p, k, n, rho) {
 
   Phi <- (1 - rho) * diag(k) + rho * ones(k, k)

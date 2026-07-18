@@ -1,7 +1,5 @@
 library(MASS)
 
-set.seed(12)
-
 get_block_simple_data <- function(sigma_sq, p, k, n) {
   
   Phi <- diag(k)

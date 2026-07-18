@@ -4,11 +4,33 @@ source("models/models.R")
 source("data/simulated/block_simple_sim.R")
 
 
-# defaults to block simple sim for now
-get_empirical_coverage <- function(sigma_sq, p, k, n, iters=100, B=100, alpha=0.05, 
-                                   verbose=F, seed=12) {
+output_time_data <- function(time_data, iteration, total_iterations, total_time) {
+  elapsed <- time_data$toc[[1]] - time_data$tic[[1]]
+  total_time <- total_time + elapsed
+  avg_time <- total_time / iteration
+  cat("Average time so far: ", round(avg_time, digits=3), '\n')
   
-  set.seed(seed)
+  est_time_left <- avg_time * (total_iterations - iteration)
+  hours_left <- est_time_left %/% 3600
+  mins_left <- (est_time_left %% 3600) %/% 60
+  secs_left <- floor(est_time_left %% 60)
+  cat("Estimated time remaining: ", hours_left, "h ", 
+          mins_left, "m ", 
+          secs_left, "s", '\n', sep='')
+}
+
+output_k_scores_data <- function(k_scores, alpha, Q_low, Q_high, init_bic_score) {
+  cat("\nK_scores INFO for alpha=", alpha, "\n")
+  cat("mean: ", round(mean(k_scores), digits=3), '\n')
+  cat("SD: ", round(sd(k_scores), digits=3), '\n')
+  cat("Q_low: ", round(Q_low, digits=3), '\n')
+  cat("Q_high: ", round(Q_high, digits=3), '\n')
+  cat("Initial score: ", round(init_bic_score, digits=3), '\n\n')
+}
+
+# defaults to block simple sim for now
+get_empirical_coverage <- function(sigma_sq, p, k, n, M=100, B=100, 
+                                   alphas=c(0.05), verbose=F) {
   
   log_msg <- function(...) {
     if (verbose) {
@@ -16,9 +38,12 @@ get_empirical_coverage <- function(sigma_sq, p, k, n, iters=100, B=100, alpha=0.
     }
   }
   
-  total_in_conf_int <- 0
+  total_in_conf_int <- numeric(length(alphas))
   
-  for (i in 1:iters) {
+  total_time <- 0
+  
+  for (i in 1:M) {
+    
     tic(paste0("Timer for iteration ", i))
     log_msg("\n-----------------")
     log_msg("Iteration ", i)
@@ -28,7 +53,7 @@ get_empirical_coverage <- function(sigma_sq, p, k, n, iters=100, B=100, alpha=0.
     
     fit <- fit_model(X, k, "fa_oblique")
     init_bic_score <- fit$BIC
-    log_msg("Initial BIC score:", init_bic_score)
+    log_msg("Initial BIC score:", round(init_bic_score, digits=3))
     
     k_scores <- numeric(B)
     for (b in 1:B) {
@@ -41,28 +66,43 @@ get_empirical_coverage <- function(sigma_sq, p, k, n, iters=100, B=100, alpha=0.
     }
     
     k_scores <- sort(k_scores)
-    
-    conf_index <- floor(B * alpha / 2)
-    Q_low <- k_scores[conf_index]
-    Q_high <- k_scores[B - conf_index + 1]
-    
-    log_msg("\nK_scores INFO")
-    log_msg("mean: ", mean(k_scores))
-    log_msg("SD: ", sd(k_scores))
-    log_msg("Q_low: ", Q_low)
-    log_msg("Q_high: ", Q_high)
-    log_msg("Initial score: ", init_bic_score, '\n')
-    
-    if (Q_low <= init_bic_score && init_bic_score <= Q_high) {
-      log_msg("*** Initial BIC score in confidence interval ***\n")
-      total_in_conf_int <- total_in_conf_int + 1
+      
+    for (j in seq_along(alphas)) {
+      alpha <- alphas[j]
+      conf_index <- floor(B * alpha / 2)
+      Q_low <- k_scores[conf_index]
+      Q_high <- k_scores[B - conf_index + 1]
+      
+      if (verbose) {
+        output_k_scores_data(k_scores, alpha, Q_low, Q_high, init_bic_score)
+      }
+        
+      if (Q_low <= init_bic_score && init_bic_score <= Q_high) {
+        log_msg("*** Initial BIC score in confidence interval ***\n")
+        total_in_conf_int[j] <- total_in_conf_int[j] + 1
+      }
     }
-    toc()
+    
+    time_data <- toc(quiet=T)
+    if (verbose) {
+      output_time_data(time_data, i, M, total_time)
+    }
   }
   
-  frac_in_conf_int <- total_in_conf_int / iters
-  log_msg("Fraction within confidence interval: ", frac_in_conf_int)
-  log_msg("Fraction required for valid interval: ", 1 - alpha)
+  coverage <- numeric(length(alphas))
   
-  frac_in_conf_int
+  for (j in seq_along(alphas)) {
+    alpha <- alphas[j]
+    frac_in_conf_int <- total_in_conf_int[j] / M
+    log_msg("Fraction in ", (1-alpha)*100, "% confidence interval: ", frac_in_conf_int)
+    coverage[j] <- frac_in_conf_int
+  }
+  
+  cat("Finished simulation with settings:",
+      "sigma_sq=", sigma_sq, 
+      "; p=", p, 
+      "; k=", k,
+      '\n')
+  print("Coverage: ", coverage)
+  coverage
 }

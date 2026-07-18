@@ -14,9 +14,7 @@ source("estimators/estimators.R")
 #   - k_obs       : the estimate from the original observed dataset (constant per model/estimator)
 #   - k_estimate  : the estimate from the b-th parametric-bootstrap sample
 run_repro_sampling <- function(X, models, estimators, max_dim, 
-                               B = 100, verbose = FALSE, seed=12) {
-  
-  set.seed(seed)
+                               B = 100, verbose = FALSE) {
   
   log_msg <- function(...) {
     if (verbose) {
