@@ -7,14 +7,15 @@ set.seed(12)
 parameter_grid <- expand.grid(
   sigma_sq = c(0.5, 1, 2),
   p = c(20, 50),
-  k = c(3, 5, 7)
+  k = c(3, 5, 7),
+  rho = c(0, 0.3, 0.6)
 )
 
 print(parameter_grid)
 
 n <- 100
-M <- 200
-B <- 400
+M <- 2
+B <- 20
 alphas <- c(0.2, 0.1)
 
 # Leave one core free for the operating system
@@ -34,6 +35,7 @@ results <- future_lapply(
       sigma_sq = setting$sigma_sq,
       p = setting$p,
       k = setting$k,
+      rho = setting$rho,
       n = n,
       M = M,
       B = B,
@@ -44,7 +46,8 @@ results <- future_lapply(
     df <- data.frame(
       sigma_sq = setting$sigma_sq,
       p = setting$p,
-      k = setting$k
+      k = setting$k,
+      rho = setting$rho
     )
     
     alphas_data <- as.data.frame(t(coverage))

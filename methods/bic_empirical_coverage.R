@@ -1,7 +1,7 @@
 library(MASS)
 library(tictoc)
 source("models/models.R")
-source("data/simulated/block_simple_sim.R")
+source("data/simulated/compound_symmetric_sim.R")
 
 
 output_time_data <- function(time_data, iteration, total_iterations, total_time) {
@@ -29,7 +29,7 @@ output_k_scores_data <- function(k_scores, alpha, Q_low, Q_high, init_bic_score)
 }
 
 # defaults to block simple sim for now
-get_empirical_coverage <- function(sigma_sq, p, k, n, M=100, B=100, 
+get_empirical_coverage <- function(sigma_sq, p, k, n, rho, M=100, B=100, 
                                    alphas=c(0.05), verbose=F) {
   
   log_msg <- function(...) {
@@ -49,7 +49,7 @@ get_empirical_coverage <- function(sigma_sq, p, k, n, M=100, B=100,
     log_msg("Iteration ", i)
     log_msg("-----------------\n")
     
-    X <- get_block_simple_data(sigma_sq, p, k, n)
+    X <- get_compound_symmetric_data(sigma_sq, p, k, n, rho)
     
     fit <- fit_model(X, k, "fa_oblique")
     init_bic_score <- fit$BIC
@@ -89,20 +89,19 @@ get_empirical_coverage <- function(sigma_sq, p, k, n, M=100, B=100,
     }
   }
   
+  cat("\nFinished simulation with settings:",
+      "sigma_sq=", sigma_sq, 
+      "; p=", p, 
+      "; k=", k,
+      '\n')
+  
   coverage <- numeric(length(alphas))
   
   for (j in seq_along(alphas)) {
     alpha <- alphas[j]
     frac_in_conf_int <- total_in_conf_int[j] / M
-    log_msg("Fraction in ", (1-alpha)*100, "% confidence interval: ", frac_in_conf_int)
+    cat("Fraction in ", (1-alpha)*100, "% confidence interval: ", frac_in_conf_int, '\n')
     coverage[j] <- frac_in_conf_int
   }
-  
-  cat("Finished simulation with settings:",
-      "sigma_sq=", sigma_sq, 
-      "; p=", p, 
-      "; k=", k,
-      '\n')
-  print("Coverage: ", coverage)
   coverage
 }
