@@ -14,9 +14,9 @@ parameter_grid <- expand.grid(
 print(parameter_grid)
 
 n <- 100
-M <- 2
-B <- 20
-alphas <- c(0.2, 0.1)
+M <- 200
+B <- 400
+alphas <- c(0.2, 0.1, 0.05, 0.01)
 
 # Leave one core free for the operating system
 n_workers <- max(1, parallel::detectCores() - 1)
