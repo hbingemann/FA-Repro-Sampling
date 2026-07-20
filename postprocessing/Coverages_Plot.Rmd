@@ -1,0 +1,121 @@
+---
+title: "Coverages Plot"
+author: "Sam Hawke"
+date: "2026-07-20"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(scales)
+
+# check.names = FALSE preserves column names such as "alpha=0.05"
+coverage <- read.csv(
+  "../results/coverages/block_simple_coverage.csv",
+  check.names = FALSE
+)
+
+names(coverage) <- c(
+  "",
+  "sigma_sq",
+  "p",
+  "k",
+  "rho",
+  "alpha_0.2",
+  "alpha_0.1",
+  "alpha_0.05",
+  "alpha_0.01"
+)
+
+alpha_columns <- c(
+  "alpha_0.2",
+  "alpha_0.1",
+  "alpha_0.05",
+  "alpha_0.01"
+)
+
+# Convert from wide to long format without pivot_longer()
+coverage_long <- reshape(
+  coverage,
+  varying = alpha_columns,
+  v.names = "observed_coverage",
+  timevar = "alpha",
+  times = c(0.20, 0.10, 0.05, 0.01),
+  direction = "long"
+)
+
+coverage_long$nominal_coverage <- 1 - coverage_long$alpha
+
+coverage_long$sigma_sq <- factor(coverage_long$sigma_sq)
+coverage_long$p <- factor(coverage_long$p)
+coverage_long$k <- factor(coverage_long$k)
+coverage_long$rho <- factor(
+  coverage_long$rho,
+  levels = c(0, 0.3, 0.6),
+  labels = c("0", "0.3", "0.6")
+)
+
+coverage_long$setting <- interaction(
+  coverage_long$sigma_sq,
+  coverage_long$p,
+  coverage_long$k,
+  coverage_long$rho,
+  drop = TRUE
+)
+
+head(coverage_long)
+
+ggplot(
+  coverage_long,
+  aes(
+    x = nominal_coverage,
+    y = observed_coverage,
+    group = setting,
+    color = sigma_sq,
+    linetype = k
+  )
+) +
+  geom_abline(
+    intercept = 0,
+    slope = 1,
+    color = "gray50",
+    linewidth = 0.7
+  ) +
+  geom_line(linewidth = 0.8, alpha = 0.8) +
+  geom_point(size = 2.4) +
+  facet_grid(
+    rows = vars(p),
+    cols = vars(rho),
+    labeller = labeller(
+      p = function(x) paste0("p = ", x),
+      rho = as_labeller(
+        c(
+          "0" = "rho == 0",
+          "0.3" = "rho == 0.3",
+          "0.6" = "rho == 0.6"
+        ),
+        label_parsed
+      )
+    )
+  ) +
+  scale_x_continuous(
+    breaks = c(0.80, 0.90, 0.95, 0.99),
+    labels = scales::percent_format(accuracy = 1),
+    limits = c(0.78, 1)
+  ) +
+  scale_y_continuous(
+    labels = scales::percent_format(accuracy = 1),
+    limits = c(0, 1)
+  ) +
+  labs(
+    x = "Nominal confidence level",
+    y = "Empirical coverage",
+    color = expression(sigma^2),
+    linetype = "k"
+  ) +
+  theme_bw(base_size = 12) +
+  theme(
+    panel.grid.minor = element_blank(),
+    legend.position = "right"
+  )
+```
