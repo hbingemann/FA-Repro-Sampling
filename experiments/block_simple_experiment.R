@@ -21,7 +21,7 @@ for (sigma_sq in c(0.5, 1, 5)) {
     for (k in c(5)) {
       print(paste0("sigma_sq=", sigma_sq, "; p=", p, "; k=", k))
       n <- 100
-      X <- get_data(sigma_sq=sigma_sq, p=p, k=k, n=n)
+      X <- get_block_simple_data(sigma_sq=sigma_sq, p=p, k=k, n=n)
       B <- 1
       max_dim <- 10
 

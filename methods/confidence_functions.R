@@ -1,4 +1,5 @@
 
+
 get_bounds <- function(B, alpha, k_scores, verbose=F) {
   conf_index <- floor(B * alpha / 2)
   bounds <- list()
@@ -33,6 +34,8 @@ is_in_confidence_interval <- function(init_score, B, alpha, k_scores, verbose=F)
   }
   return(F)
 }
+
+
 
 
 output_k_scores_info <- function(k_scores, alpha, bounds, init_bic_score,
