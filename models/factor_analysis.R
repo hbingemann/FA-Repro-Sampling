@@ -18,6 +18,7 @@ fit_fa_model <- function(X, nfactors, rotate) {
   list(
     mu=mu,
     Sigma=Sigma,
+    Lambda=Lambda,
     BIC=fit$BIC,
     original_fit=fit
   )
