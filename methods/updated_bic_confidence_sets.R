@@ -18,11 +18,13 @@ get_confidence_set <- function(X, max_k, B=100, alpha=0.05, verbose=F) {
   init_bic_scores <- numeric(max_k)
   init_fits <- list()
   
+  log_msg("\n\nGetting Initial BIC scores\n")
+  
   for (k in 1:max_k) {
     fit <- fit_model(X, k, "fa_oblique")
+    init_fits[[k]] <- fit
     init_bic_scores[k] <- fit$BIC
     log_msg("Initial BIC score for k=", k, ": ", round(fit$BIC, digits=3))
-    init_fits[[k]] <- fit
   }
   
   min_bic_score <- min(init_bic_scores)
@@ -53,10 +55,10 @@ get_confidence_set <- function(X, max_k, B=100, alpha=0.05, verbose=F) {
       deltas[b] <- new_bic_scores[k] - min(new_bic_scores)
     }
     
-    p_est <- (1 + sum(deltas > delta_obs)) / (1 + B)
+    p_est <- (1 + sum(deltas >= delta_obs)) / (1 + B)
     log_msg("Monte Carlo compatibility value: ", p_est)
     
-    # ???? is it p_est < 1 - alpha ???
+    # I'm trying to make sense of this part
     if (p_est > alpha) {
       log_msg("*** Added k=", k, " to confidence set ***")
       confidence_set <- append(confidence_set, k)
