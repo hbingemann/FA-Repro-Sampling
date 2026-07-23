@@ -17,3 +17,13 @@ pa_nfact
 fit <- fit_fa_model(X, pa_nfact$best_dim, rotate="oblimin")
 
 print(fit$Lambda)
+
+
+
+# GOAL OF THIS FILE:
+
+# input: lambda (factor loadings), 
+#         dataset with names and descriptions of variables
+
+# output: description / suggested interpretation of factors,
+#         ranking of factor correlations / loadings

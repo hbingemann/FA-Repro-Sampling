@@ -39,8 +39,11 @@ get_confidence_sets_bic_relative <- function(X, max_k, B=100, alphas=c(0.05), ve
     fit <- init_fits[[k]]
     init_bic_score <- init_bic_scores[k]
     
-    if (init_bic_score == min_bic_score) {
-      log_msg("Skipping simulations for k=", k, " since inclusion in confidence set is guaranteed")
+    if (k == best_k) {
+      log_msg("\n##############\n",
+              "Skipping simulations for k=", k, "\n", 
+              "(inclusion in confidence set is guaranteed)",
+              "\n##############\n")
       next
     }
     
