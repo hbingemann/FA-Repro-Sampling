@@ -53,7 +53,7 @@ get_empirical_coverage_bic_relative <- function(k=5, max_k=10, M=100, B=100,
     delta_obs <- init_bic_score - min_bic_score
     log_msg("Delta observed: ", round(delta_obs, digits=3), '\n')
     
-    deltas <- get_deltas(k=k, B=B, n=nrow(X), mu=fit$mu, Sigma=fit$Sigma, 
+    deltas <- get_deltas_parallel(k=k, B=B, n=nrow(X), mu=fit$mu, Sigma=fit$Sigma, 
                          max_k=max_k, verbose=verbose)
     
     p_est <- (1 + sum(deltas >= delta_obs)) / (1 + B)

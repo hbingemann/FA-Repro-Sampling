@@ -1,4 +1,5 @@
-
+library(future)
+library(future.apply)
 
 get_bounds <- function(B, alpha, k_scores, verbose=F) {
   conf_index <- floor(B * alpha / 2)
@@ -25,7 +26,7 @@ get_k_scores <- function(k, B, n, mu, Sigma, verbose=F) {
 get_deltas <- function(k, B, n, mu, Sigma, max_k, verbose=F) {
   deltas <- numeric(B)
   for (b in 1:B) {
-    if (b %% 1 == 0 && verbose) {
+    if (b %% 10 == 0 && verbose) {
       cat("Current sim: ", b, '\n')
     }
     X_art <- MASS::mvrnorm(n=n, mu=mu, Sigma=Sigma)
@@ -36,6 +37,44 @@ get_deltas <- function(k, B, n, mu, Sigma, max_k, verbose=F) {
     }
     deltas[b] <- new_bic_scores[k] - min(new_bic_scores)
   }
+  deltas
+}
+
+get_deltas_parallel <- function(k, B, n, mu, Sigma, max_k, verbose=F) {
+  
+  log_msg <- function(...) {
+    if (verbose) {
+      cat(paste0(..., '\n'))
+    }
+  }
+  
+  log_msg("Getting delta values using parallelization")
+  n_workers <- max(1, parallel::detectCores() - 1)
+  log_msg("Number of workers: ", n_workers)
+  
+  deltas <- numeric(B)
+  
+  plan(multisession, workers = n_workers)
+  
+  future_lapply(
+    1:B,
+    function(b) {
+      X_art <- MASS::mvrnorm(n=n, mu=mu, Sigma=Sigma)
+      new_bic_scores <- numeric(max_k)
+      for (j in 1:max_k) {
+        new_fit <- fit_model(X_art, j, "fa_oblique")
+        new_bic_scores[j] <- new_fit$BIC
+      }
+      deltas[b] <- new_bic_scores[k] - min(new_bic_scores)
+      
+      if (b %% 10 == 0 && verbose) {
+        log_msg("Finished simulation ", b, '\n')
+      }
+    },
+    future.seed=T
+  )
+  plan(sequential)
+  
   deltas
 }
 
@@ -76,7 +115,7 @@ output_time_info <- function(elapsed_time, iteration, total_iterations, total_ti
   }
   
   avg_time <- total_time / iteration
-  cat("Average time so far: ", round(avg_time, digits=3), '\n')
+  cat("Average time so far: ", round(avg_time, digits=3), 's\n')
   
   est_time_left <- avg_time * (total_iterations - iteration)
   hours_left <- est_time_left %/% 3600
