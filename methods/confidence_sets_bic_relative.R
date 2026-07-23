@@ -3,7 +3,7 @@ library(tictoc)
 source("models/models.R")
 source("methods/confidence_functions.R")
 
-get_confidence_set <- function(X, max_k, B=100, alpha=0.05, verbose=F) {
+get_confidence_sets_bic_relative <- function(X, max_k, B=100, alphas=c(0.05), verbose=F) {
   
   log_msg <- function(...) {
     if (verbose) {
@@ -11,7 +11,6 @@ get_confidence_set <- function(X, max_k, B=100, alpha=0.05, verbose=F) {
     }
   }
   
-  confidence_set <- list()
   total_time <- 0
   
   # get initial bic scores and fitted models
@@ -28,40 +27,42 @@ get_confidence_set <- function(X, max_k, B=100, alpha=0.05, verbose=F) {
   }
   
   min_bic_score <- min(init_bic_scores)
+  best_k <- which.min(init_bic_scores)
+  
+  confidence_sets <- list()
+  for (alpha in alphas) {
+    confidence_sets[[paste0("alpha=", alpha)]] <- c(best_k)
+  }
   
   # run repro sampling for confidence sets
   for (k in 1:max_k) {
+    fit <- init_fits[[k]]
+    init_bic_score <- init_bic_scores[k]
+    
+    if (init_bic_score == min_bic_score) {
+      log_msg("Skipping simulations for k=", k, " since inclusion in confidence set is guaranteed")
+      next
+    }
+    
     tic(paste0("Timer for k=", k))
     log_msg("\n-----------------")
     log_msg("Testing k=", k)
     log_msg("-----------------\n")
     
-    fit <- init_fits[[k]]
-    init_bic_score <- init_bic_scores[k]
     delta_obs <- init_bic_score - min_bic_score
-    log_msg("Delta observed: ", round(delta_obs, digits=3))
+    log_msg("Delta observed: ", round(delta_obs, digits=3), '\n')
     
-    deltas <- numeric(B)
-    for (b in 1:B) {
-      if (b %% 1 == 0) {
-        log_msg("Current sim: ", b)
-      }
-      X_art <- MASS::mvrnorm(n=nrow(X), mu=fit$mu, Sigma=fit$Sigma)
-      new_bic_scores <- numeric(max_k)
-      for (j in 1:max_k) {
-        new_fit <- fit_model(X_art, j, "fa_oblique")
-        new_bic_scores[j] <- new_fit$BIC
-      }
-      deltas[b] <- new_bic_scores[k] - min(new_bic_scores)
-    }
+    deltas <- get_deltas(B=B, n=nrow(X), mu=fit$mu, Sigma=fit$Sigma, max_k=max_k)
     
     p_est <- (1 + sum(deltas >= delta_obs)) / (1 + B)
-    log_msg("Monte Carlo compatibility value: ", p_est)
+    log_msg("\nMonte Carlo compatibility value: ", p_est)
     
-    # I'm trying to make sense of this part
-    if (p_est > alpha) {
-      log_msg("*** Added k=", k, " to confidence set ***")
-      confidence_set <- append(confidence_set, k)
+    for (alpha in alphas) {
+      if (p_est > alpha) {
+        log_msg("*** Added k=", k, " to alpha=", alpha, " confidence set ***")
+        confidence_sets[[paste0("alpha=", alpha)]] <- append(
+          confidence_sets[[paste0("alpha=", alpha)]], k)
+      }
     }
     
     time_data <- toc(quiet=!verbose)
@@ -70,5 +71,5 @@ get_confidence_set <- function(X, max_k, B=100, alpha=0.05, verbose=F) {
     output_time_info(elapsed, k, max_k, total_time, verbose=verbose)
   }
   
-  confidence_set
+  confidence_sets
 }

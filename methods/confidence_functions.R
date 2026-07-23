@@ -22,6 +22,23 @@ get_k_scores <- function(k, B, n, mu, Sigma, verbose=F) {
   sort(k_scores)
 }
 
+get_deltas <- function(k, B, n, mu, Sigma, max_k, verbose=F) {
+  deltas <- numeric(B)
+  for (b in 1:B) {
+    if (b %% 1 == 0 && verbose) {
+      cat("Current sim: ", b, '\n')
+    }
+    X_art <- MASS::mvrnorm(n=n, mu=mu, Sigma=Sigma)
+    new_bic_scores <- numeric(max_k)
+    for (j in 1:max_k) {
+      new_fit <- fit_model(X_art, j, "fa_oblique")
+      new_bic_scores[j] <- new_fit$BIC
+    }
+    deltas[b] <- new_bic_scores[k] - min(new_bic_scores)
+  }
+  deltas
+}
+
 is_in_confidence_interval <- function(init_score, B, alpha, k_scores, verbose=F) {
   bounds <- get_bounds(B, alpha, k_scores, verbose=verbose)
   output_k_scores_info(k_scores, alpha, bounds, init_score,

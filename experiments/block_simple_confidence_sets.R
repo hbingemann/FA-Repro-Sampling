@@ -1,6 +1,9 @@
+
+
 source("methods/updated_bic_confidence_sets.R")
 source("data/simulated/block_simple_sim.R")
 source("models/models.R")
+
 
 set.seed(12)
 
@@ -15,5 +18,8 @@ for (sigma_sq in c(0.5, 1, 2)) {
   print(conf_set)
   confidence_sets <- append(confidence_sets, conf_set)
 }
-
 print(confidence_sets)
+
+
+
+
