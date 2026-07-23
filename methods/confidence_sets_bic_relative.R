@@ -52,7 +52,8 @@ get_confidence_sets_bic_relative <- function(X, max_k, B=100, alphas=c(0.05), ve
     delta_obs <- init_bic_score - min_bic_score
     log_msg("Delta observed: ", round(delta_obs, digits=3), '\n')
     
-    deltas <- get_deltas(B=B, n=nrow(X), mu=fit$mu, Sigma=fit$Sigma, max_k=max_k)
+    deltas <- get_deltas(B=B, n=nrow(X), mu=fit$mu, Sigma=fit$Sigma, 
+                         max_k=max_k, verbose=verbose)
     
     p_est <- (1 + sum(deltas >= delta_obs)) / (1 + B)
     log_msg("\nMonte Carlo compatibility value: ", p_est)
