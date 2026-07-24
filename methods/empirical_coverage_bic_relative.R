@@ -4,7 +4,7 @@ source("models/models.R")
 source("methods/confidence_functions.R")
 source("data/simulated/compound_symmetric_sim.R")
 
-get_empirical_coverage_bic_relative <- function(k=5, max_k=10, M=100, B=100,
+get_empirical_coverage_bic_relative <- function(k=5, k_candidates=1:10, M=100, B=100,
                                                 sigma_sq=1, p=20, n=100, rho=0,
                                                 alphas=c(0.05), verbose=F) {
   
@@ -15,6 +15,7 @@ get_empirical_coverage_bic_relative <- function(k=5, max_k=10, M=100, B=100,
   }
   
   total_time <- 0
+  k_index <- match(k, k_candidates)
   k_in_conf_set_count <- numeric(length(alphas))
   
   for (i in 1:M) {
@@ -25,23 +26,24 @@ get_empirical_coverage_bic_relative <- function(k=5, max_k=10, M=100, B=100,
     
     X <- get_compound_symmetric_data(sigma_sq=sigma_sq, p=p, k=k, n=n, rho=rho)
     
-    init_bic_scores <- numeric(max_k)
+    init_bic_scores <- numeric(length(k_candidates))
     init_fits <- list()
     
     log_msg("\n\nGetting Initial BIC scores\n")
     
-    for (j in 1:max_k) {
-      fit <- fit_model(X, j, "fa_oblique")
+    for (j in seq_along(k_candidates)) {
+      curr_k <- k_candidates[j]
+      fit <- fit_model(X, curr_k, "fa_oblique")
       init_fits[[j]] <- fit
       init_bic_scores[j] <- fit$BIC
-      log_msg("Initial BIC score for k=", j, ": ", round(fit$BIC, digits=3))
+      log_msg("Initial BIC score for k=", curr_k, ": ", round(fit$BIC, digits=3))
     }
     
     min_bic_score <- min(init_bic_scores)
     best_k <- which.min(init_bic_scores)
     
-    fit <- init_fits[[k]]
-    init_bic_score <- init_bic_scores[k]
+    fit <- init_fits[[k_index]]
+    init_bic_score <- init_bic_scores[k_index]
     
     if (k == best_k) {
       log_msg("Skipping simulations on iteration ", i, 
@@ -54,7 +56,7 @@ get_empirical_coverage_bic_relative <- function(k=5, max_k=10, M=100, B=100,
     log_msg("Delta observed: ", round(delta_obs, digits=3), '\n')
     
     deltas <- get_deltas_parallel(k=k, B=B, n=nrow(X), mu=fit$mu, Sigma=fit$Sigma, 
-                         max_k=max_k, verbose=verbose)
+                                  k_candidates=k_candidates, verbose=verbose)
     
     p_est <- (1 + sum(deltas >= delta_obs)) / (1 + B)
     log_msg("\nMonte Carlo compatibility value: ", p_est)

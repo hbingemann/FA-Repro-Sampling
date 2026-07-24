@@ -23,6 +23,39 @@ get_k_scores <- function(k, B, n, mu, Sigma, verbose=F) {
   sort(k_scores)
 }
 
+get_k_scores_parallel <- function(k, B, n, mu, Sigma, verbose=F) {
+  log_msg <- function(...) {
+    if (verbose) {
+      cat(paste0(..., '\n'))
+    }
+  }
+  
+  log_msg("Getting k_scores using parallelization")
+  n_workers <- max(1, parallel::detectCores() - 1)
+  log_msg("Number of workers: ", n_workers)
+  
+  plan(multisession, workers = n_workers)
+  
+  k_scores <- unlist(future_lapply(
+    1:B,
+    function(b) {
+      X_art <- MASS::mvrnorm(n = n, mu = mu, Sigma = Sigma)
+      new_fit <- fit_model(X_art, k, "fa_oblique")
+      if (b %% 50 == 0) {
+        log_msg("Finished sim: ", b)
+      }
+      
+      new_fit$BIC
+    },
+    future.seed = T
+  ))
+  plan(sequential)
+  print(k_scores)
+  
+  sort(k_scores)
+}
+
+
 get_deltas <- function(k, B, n, mu, Sigma, max_k, verbose=F) {
   deltas <- numeric(B)
   for (b in 1:B) {
@@ -40,7 +73,7 @@ get_deltas <- function(k, B, n, mu, Sigma, max_k, verbose=F) {
   deltas
 }
 
-get_deltas_parallel <- function(k, B, n, mu, Sigma, max_k, verbose=F) {
+get_deltas_parallel <- function(k, B, n, mu, Sigma, k_candidates, verbose=F) {
   
   log_msg <- function(...) {
     if (verbose) {
@@ -52,24 +85,26 @@ get_deltas_parallel <- function(k, B, n, mu, Sigma, max_k, verbose=F) {
   n_workers <- max(1, parallel::detectCores() - 1)
   log_msg("Number of workers: ", n_workers)
   
-  deltas <- numeric(B)
-  
   plan(multisession, workers = n_workers)
   
-  future_lapply(
+  deltas <- future_lapply(
     1:B,
     function(b) {
       X_art <- MASS::mvrnorm(n=n, mu=mu, Sigma=Sigma)
-      new_bic_scores <- numeric(max_k)
-      for (j in 1:max_k) {
-        new_fit <- fit_model(X_art, j, "fa_oblique")
+      new_bic_scores <- numeric(length(k_candidates))
+      for (j in seq_along(k_candidates)) {
+        new_fit <- fit_model(X_art, k_candidates[j], "fa_oblique")
         new_bic_scores[j] <- new_fit$BIC
       }
-      deltas[b] <- new_bic_scores[k] - min(new_bic_scores)
+      k_index <- match(k, k_candidates)
+      delta <- new_bic_scores[k_index] - min(new_bic_scores)
       
       if (b %% 10 == 0 && verbose) {
-        log_msg("Finished simulation ", b, '\n')
+        log_msg("Finished simulation ", b)
+        log_msg("Delta score was: ", delta)
       }
+      
+      delta
     },
     future.seed=T
   )
@@ -80,15 +115,11 @@ get_deltas_parallel <- function(k, B, n, mu, Sigma, max_k, verbose=F) {
 
 is_in_confidence_interval <- function(init_score, B, alpha, k_scores, verbose=F) {
   bounds <- get_bounds(B, alpha, k_scores, verbose=verbose)
+  upper_bound <- get_bounds(B, 2*alpha, k_scores, verbose=verbose)$upper
   output_k_scores_info(k_scores, alpha, bounds, init_score,
                        verbose=verbose)
-  if (bounds$lower <= init_score && init_score <= bounds$upper) {
-    if (verbose) {
-      cat("*** Initial score in confidence interval ***\n")
-    }
-    return(T)
-  }
-  return(F)
+  
+  return(init_score <= upper_bound)
 }
 
 
