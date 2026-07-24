@@ -3,7 +3,10 @@ library(tictoc)
 source("models/models.R")
 source("methods/confidence_functions.R")
 
-get_confidence_sets_bic_relative <- function(X, k_candidates, B=100, alphas=c(0.05), verbose=F) {
+estimators <- c("bic", "aic", "rmsea")
+
+get_confidence_sets_relative_scores <- function(
+    X, k_candidates, B=100, alphas=c(0.05), verbose=F) {
   
   log_msg <- function(...) {
     if (verbose) {
@@ -58,7 +61,7 @@ get_confidence_sets_bic_relative <- function(X, k_candidates, B=100, alphas=c(0.
     log_msg("Delta observed: ", round(delta_obs, digits=3), '\n')
     
     deltas <- get_deltas_parallel(k=k, B=B, n=nrow(X), mu=fit$mu, Sigma=fit$Sigma, 
-                         k_candidates=k_candidates, verbose=verbose)
+                                  k_candidates=k_candidates, verbose=verbose)
     
     p_est <- (1 + sum(deltas >= delta_obs)) / (1 + B)
     log_msg("\nMonte Carlo compatibility value: ", p_est)

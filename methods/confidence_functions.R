@@ -23,6 +23,8 @@ get_k_scores <- function(k, B, n, mu, Sigma, verbose=F) {
   sort(k_scores)
 }
 
+get_estimates <- function(k)
+
 get_deltas <- function(k, B, n, mu, Sigma, max_k, verbose=F) {
   deltas <- numeric(B)
   for (b in 1:B) {
@@ -52,11 +54,9 @@ get_deltas_parallel <- function(k, B, n, mu, Sigma, k_candidates, verbose=F) {
   n_workers <- max(1, parallel::detectCores() - 1)
   log_msg("Number of workers: ", n_workers)
   
-  deltas <- numeric(B)
-  
   plan(multisession, workers = n_workers)
   
-  future_lapply(
+  deltas <- future_lapply(
     1:B,
     function(b) {
       X_art <- MASS::mvrnorm(n=n, mu=mu, Sigma=Sigma)
@@ -66,11 +66,14 @@ get_deltas_parallel <- function(k, B, n, mu, Sigma, k_candidates, verbose=F) {
         new_bic_scores[j] <- new_fit$BIC
       }
       k_index <- match(k, k_candidates)
-      deltas[b] <- new_bic_scores[k_index] - min(new_bic_scores)
+      delta <- new_bic_scores[k_index] - min(new_bic_scores)
       
       if (b %% 10 == 0 && verbose) {
-        log_msg("Finished simulation ", b, '\n')
+        log_msg("Finished simulation ", b)
+        log_msg("Delta score was: ", delta)
       }
+      
+      delta
     },
     future.seed=T
   )
