@@ -40,7 +40,7 @@ get_deltas <- function(k, B, n, mu, Sigma, max_k, verbose=F) {
   deltas
 }
 
-get_deltas_parallel <- function(k, B, n, mu, Sigma, max_k, verbose=F) {
+get_deltas_parallel <- function(k, B, n, mu, Sigma, k_candidates, verbose=F) {
   
   log_msg <- function(...) {
     if (verbose) {
@@ -60,12 +60,13 @@ get_deltas_parallel <- function(k, B, n, mu, Sigma, max_k, verbose=F) {
     1:B,
     function(b) {
       X_art <- MASS::mvrnorm(n=n, mu=mu, Sigma=Sigma)
-      new_bic_scores <- numeric(max_k)
-      for (j in 1:max_k) {
-        new_fit <- fit_model(X_art, j, "fa_oblique")
+      new_bic_scores <- numeric(length(k_candidates))
+      for (j in seq_along(k_candidates)) {
+        new_fit <- fit_model(X_art, k_candidates[j], "fa_oblique")
         new_bic_scores[j] <- new_fit$BIC
       }
-      deltas[b] <- new_bic_scores[k] - min(new_bic_scores)
+      k_index <- match(k, k_candidates)
+      deltas[b] <- new_bic_scores[k_index] - min(new_bic_scores)
       
       if (b %% 10 == 0 && verbose) {
         log_msg("Finished simulation ", b, '\n')
