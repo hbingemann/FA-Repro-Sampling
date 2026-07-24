@@ -3,7 +3,7 @@ source("methods/confidence_sets_bic_relative.R")
 
 set.seed(12)
 
-k_max <- 15
+k_max <- 10
 B <- 400
 alphas <- c(0.01, 0.05, 0.1, 0.2)
 
