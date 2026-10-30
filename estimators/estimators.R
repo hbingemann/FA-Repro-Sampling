@@ -44,7 +44,7 @@ bic <- function(X, max_dim, model = c("ppca", "fa_orthogonal", "fa_oblique")) {
   
   for (nfactors in 1:max_dim) {
     fit <- fit_model(X, nfactors, model)
-    bic_est <- fit$fit$BIC
+    bic_est <- fit$BIC
     if (is.null(bic_est)) {
       scores[nfactors] <- 999999
     } else {
@@ -56,7 +56,6 @@ bic <- function(X, max_dim, model = c("ppca", "fa_orthogonal", "fa_oblique")) {
       }
     }
   }
-  
   list(scores = scores, best_dim = which.min(scores))
 }
 
@@ -69,7 +68,7 @@ aic <- function(X, max_dim, model = c("ppca", "fa_orthogonal", "fa_oblique")) {
   
   for (nfactors in 1:max_dim) {
     fit <- fit_model(X, nfactors, model)
-    aic_est <- fit$fit$AIC
+    aic_est <- fit$AIC
     if (model == "ppca") {
       s <- .ppca_fit_stats(fit, X, nfactors)
       scores[nfactors] <- -2 * s$loglik + 2 * s$k
@@ -98,7 +97,7 @@ rmsea <- function(X, max_dim, model = c("ppca", "fa_orthogonal", "fa_oblique"),
   scores <- numeric(max_dim)
   for (nfactors in 1:max_dim) {
     fit <- fit_model(X, nfactors, model)
-    rmsea_est <- fit$fit$RMSEA[1]
+    rmsea_est <- fit$RMSEA[1]
     if (is.null(rmsea_est)) {
       scores[nfactors] <- 999999
     } else {
@@ -223,6 +222,7 @@ vss <- function(X, max_dim, model = c("ppca", "fa_orthogonal", "fa_oblique")) {
   
   result <- psych::VSS(X, n = max_dim, rotate = rotate, fm = fm, plot = FALSE)
   scores <- result$cfit.1  # VSS complexity-1 fit at each candidate dimensionality
+  print(scores)
   
   list(fit = result, scores = scores, best_dim = which.max(scores))
 }

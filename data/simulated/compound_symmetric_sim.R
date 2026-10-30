@@ -2,7 +2,9 @@ library(MASS)
 
 get_compound_symmetric_data <- function(sigma_sq, p, k, n, rho) {
 
+  # Phi = 1s on diagonal, rho elsewhere
   Phi <- (1 - rho) * diag(k) + rho * matrix(1, nrow=k, ncol=k)
+  # Psi = sigma_sq on diagonal
   Psi <- sigma_sq * diag(p)
   
   vars_per_factor <- p %/% k
@@ -14,6 +16,7 @@ get_compound_symmetric_data <- function(sigma_sq, p, k, n, rho) {
                    rep(0, p - vars_per_factor * i))
   }
   
+  # Lambda = 1s for each group of k variables
   Lambda <- do.call(cbind, vecs)
   Sigma <- Lambda %*% Phi %*% t(Lambda) + Psi
   

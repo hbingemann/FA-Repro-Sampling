@@ -1,3 +1,5 @@
+source("estimators/estimators.R")
+
 run_estimators <- function(X, max_dim, estimators, model) {
   results <- list()
   

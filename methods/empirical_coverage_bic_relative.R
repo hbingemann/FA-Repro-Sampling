@@ -47,7 +47,7 @@ get_empirical_coverage_bic_relative <- function(k=5, k_candidates=1:10, M=100, B
     
     if (k == best_k) {
       log_msg("Skipping simulations on iteration ", i, 
-              " since inclusion in confidence set is guaranteed")
+              " since inclusion in confidence set is guaranteed (delta=0).")
       k_in_conf_set_count <- k_in_conf_set_count + rep(1, length(alphas))
       next
     }

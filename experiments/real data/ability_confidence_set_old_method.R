@@ -1,4 +1,5 @@
 library(tidyverse)
+library(psychTools)
 source("methods/bic_confidence_set.R")
 
 set.seed(12)

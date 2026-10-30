@@ -1,0 +1,2 @@
+data_final.csv: from big 5 personality
+- kaggle link: https://www.kaggle.com/datasets/tunguz/big-five-personality-test?resource=download
