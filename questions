@@ -3,13 +3,7 @@
   and best K for each resim, then comparing that to difference between BIC of
   chosen K and BIC of best K for observed data, but BIC is about choosing the minimum, no? Is 
   using BIC as a score maybe stretching it?
-- so we're looking at observed delta versus sampled delta
-    ideally we'd have observed delta versus typical delta, and we're looking at how
-    far away we are from typical
-    so what does it mean to be typical? 
-      - same mean
-      - still a factor model (since we're only interested in those)
-      - 
+  
   - does the difference we observe between how well K works on the observed data and the fitted
     model not heavily depend on the dimensions and type of data we're observing
     and less so on K? are we just hoping the effect of changing K will be
@@ -20,35 +14,16 @@
   - how is it that different K's account for how well our factor model fits
     typical data?
     
-- why must our sampled data assume K as the number of factors when testing
-  for K?
-- why do we have to refit a j-factor model to each resample data rather than
-  just the observed data? why would K not be the best fit for X*(b)_K every time?
-    
-    
-- what we still need this semester: 
-    - more real datasets to test on
-    - empirical coverage for more extensive simulations
-    
 - I think the main shortcoming was that our simulations were very simple
 - We should look into more advanced simulations
 - Like how well does our simulated data approximate data that is known to fit well
   with the FA model
-  
-FOR NEXT WEEK:
-1. Update code so it runs
-2. Look for real datasets if time permits
+ 
 
 NEXT STEPS:
+* run empirical coverage simulations
 * AIC, RMSEA
-* 
+* real datasets
 
-
-
-- why is k=4 never the lowest BIC score when I'm fitting a model to a simulated
-  dataset with a true k of 4?
-- why can't we just look at the probability that k=4 gives us the lowest BIC
-  output?
   
-- I feel like the confidence interval is just another line drawing tool, so 
-  depending on which 
+- I feel like the confidence interval is just another line drawing tool
